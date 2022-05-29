@@ -1,29 +1,30 @@
-import org.jetbrains.kotlin.gradle.tasks.KotlinCompile
+import net.minecrell.pluginyml.bukkit.BukkitPluginDescription.PluginLoadOrder
 
 plugins {
-    kotlin("jvm") version "1.6.21"
-    application
+    id("dev.racci.minix.kotlin")
+    id("dev.racci.minix.purpurmc")
+    id("net.minecrell.plugin-yml.bukkit") version "0.5.1"
+    kotlin("plugin.serialization")
 }
 
-group = "dev.racci"
-version = "0.0.1-ALPHA"
+bukkit {
+    name = project.name
+    prefix = project.name
+    author = "Racci"
+    apiVersion = "1.18"
+    version = rootProject.version.toString()
+    main = "dev.racci.elixirhub.ElixirHub"
+    load = PluginLoadOrder.POSTWORLD
+    depend = listOf("Minix")
+    libraries = listOf(
+        libs.minecraft.commandAPI.get().toString()
+    )
+}
 
 repositories {
-    mavenCentral()
+    maven("https://repo.racci.dev/snapshots")
 }
 
 dependencies {
-    testImplementation(kotlin("test"))
-}
-
-tasks.test {
-    useJUnitPlatform()
-}
-
-tasks.withType<KotlinCompile> {
-    kotlinOptions.jvmTarget = "16"
-}
-
-application {
-    mainClass.set("MainKt")
+    implementation("dev.racci:Minix:3.0.0-SNAPSHOT")
 }

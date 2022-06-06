@@ -29,14 +29,7 @@ repositories {
 }
 
 dependencies {
-    implementation("dev.racci:Minix:3.0.0-SNAPSHOT")
-    implementation("com.github.MilkBowl:VaultAPI:1.7")
-
-//    compileOnly(libs.cloud.minecraft.brigadier)
-//    compileOnly(libs.cloud.kotlin.coroutines)
-//    compileOnly(libs.cloud.kotlin.extensions)
-//    compileOnly(libs.cloud.minecraft.extras)
-//    compileOnly(libs.cloud.minecraft.paper)
+    compileOnly("dev.racci:Minix:3.0.0-SNAPSHOT")
 
     compileOnly(libs.minecraft.commandAPI)
     compileOnly(libs.bundles.kotlin)

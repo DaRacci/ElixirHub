@@ -38,13 +38,16 @@ class RegionService(override val plugin: ElixirHub) : Extension<ElixirHub>() {
 
         for (region in regions) {
             if (region.name == name) {
+                log.debug { "Region with name $name already exists" }
                 result = Result.failure(RegionAlreadyExistsException("Region with name '$name' already exists"))
                 break
             }
 
             // TODO: Find smaller region
             for (pos in region.posRange) {
+                log.debug { "Checking if $pos is in ${posRange.first}-${posRange.last}" }
                 if (posRange.contains(pos)) {
+                    log.debug { "Region $pos is in ${posRange.first}-${posRange.last}" }
                     result = Result.failure(RegionOverlapException("Region with name ${region.name} overlaps with $posRange."))
                     break
                 }
@@ -169,10 +172,16 @@ class RegionService(override val plugin: ElixirHub) : Extension<ElixirHub>() {
     }
 
     private fun canUse(file: File): Boolean {
+        if (!file.parentFile.exists() && !file.parentFile.mkdirs()) {
+            log.error { "Failed to create directory ${file.parentFile}" }
+            return false
+        }
+
         if (!file.exists()) {
             if (!file.createNewFile()) log.error { "Failed to create file $file" }
             return false
         }
+
         return true
     }
 

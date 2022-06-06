@@ -5,7 +5,9 @@ import dev.jorel.commandapi.StringTooltip
 import dev.jorel.commandapi.SuggestionInfo
 import dev.jorel.commandapi.arguments.ArgumentSuggestions
 import dev.jorel.commandapi.arguments.BooleanArgument
+import dev.jorel.commandapi.arguments.PlayerArgument
 import dev.jorel.commandapi.arguments.StringArgument
+import dev.jorel.commandapi.executors.CommandExecutor
 import dev.jorel.commandapi.executors.PlayerCommandExecutor
 import dev.racci.elixirhub.ElixirHub
 import dev.racci.elixirhub.Permission
@@ -38,6 +40,26 @@ class CommandService(override val plugin: ElixirHub) : Extension<ElixirHub>() {
             withAliases("regions")
 
             val subcommands = subcommands as ArrayList
+
+            subcommands += CommandAPICommand("wand").apply {
+                withShortDescription("Gives the tool to use for region editing.")
+                withPermission("elixirhub.region.wand")
+                withArguments(PlayerArgument("target"))
+                withAliases("tool")
+
+                executes(
+                    CommandExecutor { commandSender, anies ->
+                        val target = anies.getCastOrNull<Player>(0) ?: commandSender as? Player ?: return@CommandExecutor
+
+                        if (target.inventory.addItem(RegionService.SELECTOR).isEmpty()) {
+                            commandSender.msg("&c${target.name} doesn't have enough space in their inventory to receive the wand.")
+                            return@CommandExecutor
+                        }
+
+                        commandSender.msg("&b${target.name} has been given the wand.")
+                    }
+                )
+            }
 
             subcommands += CommandAPICommand("create").apply {
                 withShortDescription("Create a new region.")
@@ -233,7 +255,7 @@ class CommandService(override val plugin: ElixirHub) : Extension<ElixirHub>() {
                     }
                 )
             }
-        }
+        }.register()
     }
 
     private fun mapPermissionTooltip(permission: Permission): StringTooltip {

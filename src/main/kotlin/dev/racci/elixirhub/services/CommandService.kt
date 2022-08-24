@@ -34,7 +34,9 @@ class CommandService(override val plugin: ElixirHub) : Extension<ElixirHub>() {
         CommandAPICommand("elixirhub").apply {
             withShortDescription("Base command for ElixirHub")
         }.register()
+    }
 
+    private fun registerRegionCommands() {
         CommandAPICommand("region").apply {
             withShortDescription("Base command for managing regions.")
             withAliases("regions")

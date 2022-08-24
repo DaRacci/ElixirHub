@@ -2,7 +2,6 @@ package dev.racci.elixirhub.services
 
 import dev.racci.elixirhub.ElixirHub
 import dev.racci.elixirhub.Region
-import dev.racci.minix.api.annotations.MappedExtension
 import dev.racci.minix.api.builders.ItemBuilderDSL
 import dev.racci.minix.api.extension.Extension
 import dev.racci.minix.api.extensions.parse
@@ -24,7 +23,7 @@ import org.bukkit.persistence.PersistentDataType
 import java.io.File
 import java.util.UUID
 
-@MappedExtension(ElixirHub::class, "Region Service")
+//@MappedExtension(ElixirHub::class, "Region Service")
 class RegionService(override val plugin: ElixirHub) : Extension<ElixirHub>() {
     val selects: MutableMap<UUID, Triple<String, BlockPos?, BlockPos?>> = mutableMapOf()
     val regions: MutableSet<Region> = mutableSetOf()

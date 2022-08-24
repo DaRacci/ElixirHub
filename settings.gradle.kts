@@ -25,7 +25,7 @@ pluginManagement {
 dependencyResolutionManagement {
     repositories.maven("https://repo.racci.dev/releases")
 
-    versionCatalogs.create("libs") {
+    versionCatalogs.create("lib") {
         val minixConventions: String by settings
         from("dev.racci:catalog:$minixConventions")
     }

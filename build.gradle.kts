@@ -18,7 +18,7 @@ bukkit {
     load = PluginLoadOrder.POSTWORLD
     depend = listOf("Minix")
     libraries = listOf(
-        libs.minecraft.commandAPI.get().toString(),
+        lib.minecraft.commandAPI.get().toString(),
     )
 }
 
@@ -31,11 +31,11 @@ repositories {
 dependencies {
     compileOnly("dev.racci:Minix:3.0.0-SNAPSHOT")
 
-    compileOnly(libs.minecraft.commandAPI)
-    compileOnly(libs.bundles.kotlin)
-    compileOnly(libs.bundles.kotlinx)
-    compileOnly(libs.bundles.exposed)
-    compileOnly(libs.bundles.kyori)
+    compileOnly(lib.minecraft.commandAPI)
+    compileOnly(lib.bundles.kotlin)
+    compileOnly(lib.bundles.kotlinx)
+    compileOnly(lib.bundles.exposed)
+    compileOnly(lib.bundles.kyori)
 
-    compileOnly(libs.caffeine)
+    compileOnly(lib.caffeine)
 }

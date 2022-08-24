@@ -8,7 +8,7 @@ import kotlin.reflect.full.declaredMemberProperties
 class Permission private constructor(
     val description: String,
     val playerDefault: Boolean = false,
-    val opDefault: Boolean = true,
+    val opDefault: Boolean = true
 ) {
     @Transient
     lateinit var name: String
@@ -23,6 +23,7 @@ class Permission private constructor(
     }
 
     private fun Player.opCheck(): Boolean = opDefault && this.isOp
+
     // Checks that this permission isn't explicitly set to false
     private fun Player.defaultCheck(): Boolean = playerDefault && !this.permissionValue(builtPermission).toBooleanOrElse(false)
     private fun Player.normalCheck(): Boolean = this.hasPermissionOrStar(builtPermission) || this.hasPermission("*")

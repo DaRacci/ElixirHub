@@ -1,111 +1,61 @@
 package dev.racci.elixirhub.services
 
+import com.destroystokyo.paper.event.player.PlayerPostRespawnEvent
 import dev.racci.elixirhub.ElixirHub
-import dev.racci.elixirhub.Permission
 import dev.racci.minix.api.annotations.MappedExtension
 import dev.racci.minix.api.extension.Extension
 import dev.racci.minix.api.extensions.cancel
 import dev.racci.minix.api.extensions.event
-import dev.racci.minix.api.extensions.msg
-import dev.racci.minix.api.extensions.pdc
-import dev.racci.minix.api.utils.minecraft.asBlockPos
-import org.bukkit.Location
+import org.bukkit.attribute.Attribute
+import org.bukkit.attribute.AttributeInstance
+import org.bukkit.entity.EntityType
 import org.bukkit.entity.Player
 import org.bukkit.event.EventPriority
-import org.bukkit.event.block.Action
-import org.bukkit.event.block.BlockBreakEvent
-import org.bukkit.event.block.BlockFertilizeEvent
-import org.bukkit.event.block.BlockMultiPlaceEvent
-import org.bukkit.event.block.BlockPlaceEvent
-import org.bukkit.event.block.CauldronLevelChangeEvent
-import org.bukkit.event.block.SignChangeEvent
-import org.bukkit.event.player.PlayerBucketEmptyEvent
-import org.bukkit.event.player.PlayerBucketEntityEvent
-import org.bukkit.event.player.PlayerBucketFillEvent
-import org.bukkit.event.player.PlayerInteractEvent
+import org.bukkit.event.entity.EntityPotionEffectEvent
+import org.bukkit.event.player.PlayerJoinEvent
+import org.bukkit.potion.PotionEffect
+import org.bukkit.potion.PotionEffectType
 
 @MappedExtension(ElixirHub::class, "Event Service")
 class EventService(override val plugin: ElixirHub) : Extension<ElixirHub>() {
 
     override suspend fun handleEnable() {
-        bucketEvents()
-        blockEvents()
-        regionEvents()
-    }
-
-    private fun bucketEvents() {
-        event<PlayerBucketFillEvent>(EventPriority.LOWEST) {
-            if (!overrideRegionOrDefault(player, player.location, Permission.BUCKET_FILL)) return@event cancel()
+        event<PlayerJoinEvent>(EventPriority.MONITOR, true) {
+            giveSpawnAttributes(this.player)
         }
 
-        event<PlayerBucketEmptyEvent>(EventPriority.LOWEST) {
-            if (!overrideRegionOrDefault(player, player.location, Permission.BUCKET_EMPTY)) return@event cancel()
+        event<PlayerPostRespawnEvent>(EventPriority.MONITOR, true) {
+            giveSpawnAttributes(this.player)
         }
 
-        event<PlayerBucketEntityEvent>(EventPriority.LOWEST) {
-            if (!overrideRegionOrDefault(player, player.location, Permission.BUCKET_ENTITY)) return@event cancel()
-        }
-    }
-
-    private fun blockEvents() {
-        event<BlockBreakEvent>(EventPriority.LOWEST) {
-            if (!overrideRegionOrDefault(player, block.location, Permission.BLOCK_BREAK)) return@event cancel()
-        }
-
-        event<BlockPlaceEvent>(EventPriority.LOWEST) {
-            if (!overrideRegionOrDefault(player, blockAgainst.location, Permission.BLOCK_PLACE)) return@event cancel()
-        }
-
-        event<BlockMultiPlaceEvent>(EventPriority.LOWEST) {
-            if (!overrideRegionOrDefault(player, blockAgainst.location, Permission.BLOCK_PLACE)) return@event cancel()
-        }
-
-        event<BlockFertilizeEvent>(EventPriority.LOWEST) {
-            if (player == null) return@event
-            if (!overrideRegionOrDefault(player!!, block.location, Permission.BLOCK_FERTILISE)) return@event cancel()
-        }
-
-        event<CauldronLevelChangeEvent>(EventPriority.LOWEST) {
-            if (entity == null || entity !is Player) return@event
-            if (!overrideRegionOrDefault(entity as Player, block.location, Permission.BLOCK_INTERACT)) return@event cancel()
-        }
-
-        event<SignChangeEvent>(EventPriority.LOWEST) {
-            if (!overrideRegionOrDefault(player, block.location, Permission.SIGN_CHANGE)) return@event cancel()
-        }
-    }
-
-    private fun regionEvents() {
-        event<PlayerInteractEvent>(EventPriority.LOWEST) {
-            if (action == Action.PHYSICAL || !hasItem() || clickedBlock == null) return@event
-            if (!player.inventory.itemInMainHand.pdc.has(RegionService.NBT_KEY)) return@event
-
-            val type = if (action.isLeftClick) 1 else 2
-            RegionService.getService().setPosition(player.uniqueId, clickedBlock!!.location, type.toShort())
-
-            player.msg("<aqua>Set position $type to <gold>${clickedBlock!!.location}")
-        }
-    }
-
-    private fun overrideRegionOrDefault(
-        player: Player,
-        location: Location,
-        vararg perms: Permission,
-    ): Boolean {
-        val result = RegionService.getService().getRegionFromPos(location.asBlockPos(), location.world.name)
-        if (result.isFailure) {
-            return perms.any { it.hasPermission(player) }
-        }
-
-        val region = result.getOrThrow()
-
-        for ((override, value) in region.ruleOverrides) {
-            for (perm in perms) {
-                // Override permissions take priority
-                if (override == perm) return value
+        event<EntityPotionEffectEvent>(EventPriority.MONITOR, true) {
+            when {
+                this.entityType !== EntityType.PLAYER -> return@event
+                this.action.ordinal == 0 -> return@event
+                this.modifiedType == PotionEffectType.JUMP -> cancel()
             }
         }
+    }
 
-        return perms.any { it.hasPermission(player) }
+    private fun giveSpawnAttributes(player: Player) {
+        with(getAttribute(player, Attribute.GENERIC_MOVEMENT_SPEED)) {
+            baseValue *= 1.2
+        }
+        player.addPotionEffect(SPEED_POTION)
+    }
+
+    private fun getAttribute(
+        player: Player,
+        attribute: Attribute
+    ): AttributeInstance {
+        return player.getAttribute(attribute) ?: player.registerAttribute(attribute).let { player.getAttribute(attribute)!! }
+    }
+
+    private companion object {
+        val SPEED_POTION: PotionEffect = PotionEffect(PotionEffectType.JUMP, Integer.MAX_VALUE, 1, true, false, false)
+//        val SPEED_UUID: UUID = UUID.fromString("b59f31c0-ad2d-4847-8cc4-08b7f81d8180")
+//        val JUMP_UUID: UUID = UUID.fromString("b672247a-088e-49fd-b4e5-02a5c3b13947")
+//        val SPEED_MODIFIER = AttributeModifier(SPEED_UUID, "HUB_SPEED", 1.4, AttributeModifier.Operation.ADD_SCALAR)
+//        val JUMP_MODIFIER = AttributeModifier(JUMP_UUID, "HUB_JUMP", 1.4, AttributeModifier.Operation.ADD_SCALAR)
     }
 }
